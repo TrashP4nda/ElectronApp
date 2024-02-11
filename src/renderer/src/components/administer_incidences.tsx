@@ -17,7 +17,7 @@ interface TabPanelProps {
 
 const fetchIncidences = async (token: String) => {
   try {
-    const response = await axios.get('http://localhost:5009/api/incidencias', {
+    const response = await axios.get('http://192.168.1.136:5009/api/incidencias', {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -31,7 +31,7 @@ const fetchIncidences = async (token: String) => {
 
 const deleteIncidence = async (token: string, incidenceId: string) => {
   try {
-    const url = `http://localhost:5009/api/incidencias/${incidenceId}`;
+    const url = `http://192.168.1.136:5009/api/incidencias/${incidenceId}`;
     await axios.delete(url, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -106,15 +106,11 @@ export default function Administer() {
     <Box sx={{ width: '100%',height:"100%" , marginTop:'3.5rem' , marginBottom:'3.5rem'}}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-          <Tab label="Ver incidencias" {...a11yProps(0)} />
-          <Tab label="Añadir Incidencias" {...a11yProps(1)} />
+          <Tab label="Editar Incidencias Favoritas" {...a11yProps(0)}/>
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
         <Tablilla rows={incidences} onDelete={handleDelete}></Tablilla>
-      </CustomTabPanel>
-      <CustomTabPanel value={value} index={1}>
-        Item Two
       </CustomTabPanel>
     </Box>
   );

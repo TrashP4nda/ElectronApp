@@ -21,9 +21,9 @@ export default function Login() {
 
     
 
-    const login = async () => axios.post("http://localhost:5009/api/usuarios/login", {
-        Username: getValues("Username"),
-        Password: getValues("Password")
+    const login = async () => axios.post("http://192.168.1.136:5009/api/usuarios/login", {
+        username: getValues("Username"),
+        password: getValues("Password")
     }, {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -63,7 +63,7 @@ export default function Login() {
                 {errors.Password && <p style={{ color: 'red' }}>This field is required!</p>}
                 {errors ? <Button type="submit"  >Login</Button> : <Button type="submit" disabled >Login</Button>}
             </form>
-            <Button >Register</Button>
+        
         </div>
     )
 }

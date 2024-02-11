@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import Cookies from 'js-cookie';
+import axios from 'axios';
+import { useForm } from "react-hook-form"
 
 interface IncidenceData {
     autonomousRegion: string;
@@ -14,7 +17,7 @@ interface IncidenceData {
     direction: string;
     endDate: string;
     incidenceDescription: string;
-    incidenceID?: string;
+    incidenceID: string;
     incidenceLevel: string;
 }
 
@@ -24,35 +27,15 @@ interface EditIncidenceFormProps {
     incidenceData: IncidenceData | null;
 }
 
-const updateIncidence = async (IncidenceID: string, token: string, incidenceData: IncidenceData) => {
-    try {
-        const url = `http://192.168.1.134:5009/api/incidencias/${IncidenceID}`;
-        const formData = new FormData();
 
-        for (const [key, value] of Object.entries(incidenceData)) {
-            formData.append(key, value);
-        }
 
-        const response = await fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-            body: formData,
-        });
 
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
-        }
+  
 
-        return await response.json();
-    } catch (error) {
-        console.error('Failed to update incidence:', error);
-        throw error;
-    }
-};
+
 
 const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, incidenceData }) => {
+
     const [formData, setFormData] = useState<IncidenceData>({
         autonomousRegion: '',
         carRegistration: '',
@@ -64,6 +47,45 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
         incidenceID: '',
         incidenceLevel: '',
     });
+
+
+    const { handleSubmit,  getValues, register } = useForm({
+        defaultValues: {
+            AutonomousRegion: formData.autonomousRegion,
+            CarRegistration: formData.carRegistration,
+            Cause: formData.cause,
+            CityTown: formData.cityTown,
+            Direction : formData.direction,
+            endDate: formData.endDate,
+            incidenceDescription: formData.incidenceDescription,
+            incidenceID: formData.incidenceID,
+            IncidenceLevel: formData.incidenceLevel
+        }
+      })
+
+
+    const updateIncidence = async (token: string, IncidenceID: string) => axios.put(`http://192.168.1.136:5009/api/incidencias/${IncidenceID}`, {
+        AutonomousRegion: getValues("AutonomousRegion"),
+        CarRegistration: getValues("CarRegistration"),
+        Cause: getValues("Cause"),
+        Citytown : getValues("CityTown"),
+        Direction : getValues("Direction"),
+        endDate: getValues("endDate"),
+        incidenceDescription: getValues("incidenceDescription"),
+        incidenceID: IncidenceID,
+        IncidenceLevel: getValues("IncidenceLevel")
+    }, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    
+    }).then(response => { Cookies.set("token", response.data["token"], { expires: 7 });localStorage.setItem("currentUser",JSON.stringify(response.data["user"])); }) 
+      
+    
+
+
+
 
     useEffect(() => {
         if (incidenceData) {
@@ -79,19 +101,20 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
         }));
     };
 
-    const handleSubmit = async () => {
+   
+
+    const onSubmit = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = Cookies.get('token')
             if (!token) {
                 console.error('No token found');
                 return;
             }
 
-            const { incidenceID, ...updateData } = formData;
+           
 
-            if (incidenceID) {
-                await updateIncidence(incidenceID, token, updateData);
-            }
+            updateIncidence(token,formData.incidenceID);
+            
 
             onClose(); // Close the dialog after a successful update
         } catch (error) {
@@ -103,8 +126,10 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
             <DialogTitle>Edit Incidence</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} direction={'column'}>
+                    <form  onSubmit={handleSubmit(onSubmit)} >
                 <Label htmlFor="autonomousRegion">AutonomousRegion</Label>
                     <Input
+                    {...register("AutonomousRegion")}
                         id="autonomousRegion"
                         name="autonomousRegion"
                         value={formData.autonomousRegion}
@@ -113,6 +138,7 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                     />
                     <Label htmlFor="carRegistration">CarRegistration</Label>
                     <Input
+                    {...register("CarRegistration")}
                         id="carRegistration"
                         name="carRegistration"
                         value={formData.carRegistration}
@@ -121,6 +147,7 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                     />
                     <Label htmlFor="cause">Cause</Label>
                     <Input
+                    {...register("Cause")}
                         id="cause"
                         name="cause"
                         value={formData.cause}
@@ -129,6 +156,7 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                     />
                     <Label htmlFor="cititoun">City/Town</Label>
                     <Input
+                    {...register("CityTown")}
                         id="cititoun"
                         name="cityTown"
                         value={formData.cityTown}
@@ -137,6 +165,7 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                     />
                     <Label htmlFor="direction">Direction</Label>
                     <Input
+                    {...register("Direction")}
                         id="direction"
                         name="direction"
                         value={formData.direction}
@@ -145,6 +174,7 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                     />
                     <Label htmlFor="enddate">EndDate</Label>
                     <Input
+                    {...register("endDate")}
                         id="enddate"
                         name="endDate"
                         value={formData.endDate}
@@ -154,6 +184,7 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                     />
                     <Label htmlFor="Description">Description</Label>
                     <Textarea
+                    {...register("incidenceDescription")}
                         id="Description"
                         name="incidenceDescription"
                         value={formData.incidenceDescription}
@@ -163,15 +194,17 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                     />
                     <Label htmlFor="incID">IncidenceID</Label>
                     <Input
+                    {...register("incidenceID")}
                         id="incID"
                         name="incidenceID"
                         value={formData.incidenceID}
                         onChange={handleChange}
                         fullWidth
-                        disabled // Assuming this is an ID and should not be editable
+                     
                     />
                     <Label htmlFor="IncidenceLevel">IncidenceLevel</Label>
                     <Input
+                    {...register("IncidenceLevel")}
                         id="IncidenceLevel"
                         name="incidenceLevel"
                         value={formData.incidenceLevel}
@@ -182,9 +215,10 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
 
 
                     {/* Repeat for other fields */}
-                    <Button onClick={handleSubmit} >
+                    <Button type="submit"  >
                         Save Changes
                     </Button>
+                    </form>
                 </Stack>
             </DialogContent>
         </Dialog>
