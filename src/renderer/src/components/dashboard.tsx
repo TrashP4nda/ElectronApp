@@ -28,14 +28,13 @@ export default function Dashboard() {
     return (
         <>
 
-            <h1>Welcome aboard , {username}.</h1>
-            <div className="grid grid-cols-2 gap-4 p-5">
-                <Button onClick={() => navigate("/administer")}>Administer</Button>
-                <Button onClick={() => navigate("/profile")}>Profile</Button>
+            <h1>Bienvenido , {username}.</h1>
+            <div className="grid grid-cols-1 gap-4 p-5">
+                <Button onClick={() => navigate("/administer")}>Administrar</Button>
                 <Button onClick={() => navigate("/map")}>Mapa</Button>
-                <Button onClick={() => navigate("/administer")}>Placeholder</Button>
+                <Button >En construccion</Button>
             </div>
-            <Button onClick={() => { localStorage.clear(); Cookies.remove('token'); navigate("/") }}>Back To login</Button>
+            <Button onClick={() => { localStorage.clear(); Cookies.remove('token'); navigate("/") }}>Logout</Button>
         </>
 
     );

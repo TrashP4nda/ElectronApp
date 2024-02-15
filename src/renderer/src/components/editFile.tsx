@@ -17,8 +17,10 @@ interface IncidenceData {
     direction: string;
     endDate: string;
     incidenceDescription: string;
-    incidenceID: string;
+    incidenceId: string;
     incidenceLevel: string;
+    latitude:string;
+    longitude:string;
 }
 
 interface EditIncidenceFormProps {
@@ -44,12 +46,14 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
         direction: '',
         endDate: '',
         incidenceDescription: '',
-        incidenceID: '',
+        incidenceId: '',
         incidenceLevel: '',
+        latitude:'',
+        longitude:'',
     });
 
 
-    const { handleSubmit,  getValues, register } = useForm({
+    const { handleSubmit,  getValues, register , reset } = useForm({
         defaultValues: {
             AutonomousRegion: formData.autonomousRegion,
             CarRegistration: formData.carRegistration,
@@ -58,13 +62,14 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
             Direction : formData.direction,
             endDate: formData.endDate,
             incidenceDescription: formData.incidenceDescription,
-            incidenceID: formData.incidenceID,
-            IncidenceLevel: formData.incidenceLevel
-        }
+            incidenceId: formData.incidenceId,
+            IncidenceLevel: formData.incidenceLevel,
+            latitude : formData.latitude,
+            longitude : formData.longitude,}
       })
 
 
-    const updateIncidence = async (token: string, IncidenceID: string) => axios.put(`http://192.168.1.136:5009/api/incidencias/${IncidenceID}`, {
+    const updateIncidence = async (token: string, IncidenceID: string) => axios.put(`http://192.168.137.1:5009/api/customIncidencias/${IncidenceID}`, {
         AutonomousRegion: getValues("AutonomousRegion"),
         CarRegistration: getValues("CarRegistration"),
         Cause: getValues("Cause"),
@@ -72,15 +77,17 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
         Direction : getValues("Direction"),
         endDate: getValues("endDate"),
         incidenceDescription: getValues("incidenceDescription"),
-        incidenceID: IncidenceID,
-        IncidenceLevel: getValues("IncidenceLevel")
+        incidenceId: IncidenceID,
+        IncidenceLevel: getValues("IncidenceLevel"),
+        latitude : getValues('latitude'),
+        longitude : getValues("longitude")
     }, {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/x-www-form-urlencoded'
         }
     
-    }).then(response => { Cookies.set("token", response.data["token"], { expires: 7 });localStorage.setItem("currentUser",JSON.stringify(response.data["user"])); }) 
+    })
       
     
 
@@ -89,38 +96,49 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
 
     useEffect(() => {
         if (incidenceData) {
-            setFormData({ ...incidenceData });
+            // Use reset to update form values dynamically
+            reset({
+                AutonomousRegion: incidenceData.autonomousRegion,
+                CarRegistration: incidenceData.carRegistration,
+                Cause: incidenceData.cause,
+                CityTown: incidenceData.cityTown,
+                Direction: incidenceData.direction,
+                endDate: incidenceData.endDate,
+                incidenceDescription: incidenceData.incidenceDescription,
+                incidenceId: incidenceData.incidenceId,
+                IncidenceLevel: incidenceData.incidenceLevel,
+                latitude: incidenceData.latitude,
+                longitude: incidenceData.longitude,
+            });
         }
-    }, [incidenceData]);
+    }, [incidenceData, reset]);
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = event.target;
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            [name]: value,
-        }));
-    };
-
+  
    
 
     const onSubmit = async () => {
         try {
-            const token = Cookies.get('token')
+            const token = Cookies.get('token');
             if (!token) {
                 console.error('No token found');
                 return;
             }
-
-           
-
-            updateIncidence(token,formData.incidenceID);
-            
-
+    
+            // Check if incidenceData is not null
+            if (!incidenceData) {
+                console.error('Incidence data is null');
+                return; // Abort the operation or handle accordingly
+            }
+    
+            // Proceed with the update since incidenceData is not null
+            await updateIncidence(token, incidenceData.incidenceId);
+    
             onClose(); // Close the dialog after a successful update
         } catch (error) {
             console.error('Error updating incidence:', error);
         }
     };
+    
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" >
             <DialogTitle>Edit Incidence</DialogTitle>
@@ -130,28 +148,28 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                 <Label htmlFor="autonomousRegion">AutonomousRegion</Label>
                     <Input
                     {...register("AutonomousRegion")}
-                        id="autonomousRegion"
-                        name="autonomousRegion"
-                        value={formData.autonomousRegion}
-                        onChange={handleChange}
+                        id="AutonomousRegion"
+                        name="AutonomousRegion"
+                        
+                        
                         fullWidth
                     />
                     <Label htmlFor="carRegistration">CarRegistration</Label>
                     <Input
                     {...register("CarRegistration")}
                         id="carRegistration"
-                        name="carRegistration"
-                        value={formData.carRegistration}
-                        onChange={handleChange}
+                        name="CarRegistration"
+                       
+                       
                         fullWidth
                     />
                     <Label htmlFor="cause">Cause</Label>
                     <Input
                     {...register("Cause")}
                         id="cause"
-                        name="cause"
-                        value={formData.cause}
-                        onChange={handleChange}
+                        name="Cause"
+                       
+                        
                         fullWidth
                     />
                     <Label htmlFor="cititoun">City/Town</Label>
@@ -159,17 +177,17 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                     {...register("CityTown")}
                         id="cititoun"
                         name="cityTown"
-                        value={formData.cityTown}
-                        onChange={handleChange}
+                       
+                      
                         fullWidth
                     />
                     <Label htmlFor="direction">Direction</Label>
                     <Input
                     {...register("Direction")}
-                        id="direction"
-                        name="direction"
-                        value={formData.direction}
-                        onChange={handleChange}
+                        id="Direction"
+                        name="Direction"
+                       
+                       
                         fullWidth
                     />
                     <Label htmlFor="enddate">EndDate</Label>
@@ -177,8 +195,8 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                     {...register("endDate")}
                         id="enddate"
                         name="endDate"
-                        value={formData.endDate}
-                        onChange={handleChange}
+                      
+                      
                         fullWidth
                     // Shadcn UI might have a different prop for managing input label shrink behavior
                     />
@@ -187,18 +205,18 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                     {...register("incidenceDescription")}
                         id="Description"
                         name="incidenceDescription"
-                        value={formData.incidenceDescription}
-                        onChange={handleChange}
+                        
+                       
                         fullWidth
                         rows={4}
                     />
                     <Label htmlFor="incID">IncidenceID</Label>
                     <Input
-                    {...register("incidenceID")}
+                    {...register("incidenceId")}
                         id="incID"
-                        name="incidenceID"
-                        value={formData.incidenceID}
-                        onChange={handleChange}
+                        name="incidenceId"
+                        
+                      
                         fullWidth
                      
                     />
@@ -206,9 +224,29 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
                     <Input
                     {...register("IncidenceLevel")}
                         id="IncidenceLevel"
-                        name="incidenceLevel"
-                        value={formData.incidenceLevel}
-                        onChange={handleChange}
+                        name="IncidenceLevel"
+                        
+                        
+                        fullWidth
+                    // Options prop might be needed here to list down the incidence levels if Shadcn UI supports it
+                    />
+                     <Label htmlFor="latitude">Latitude</Label>
+                    <Input
+                    {...register("latitude")}
+                        id="latitude"
+                        name="latitude"
+                       
+                     
+                        fullWidth
+                    // Options prop might be needed here to list down the incidence levels if Shadcn UI supports it
+                    />
+                     <Label htmlFor="longitude">Longitude</Label>
+                    <Input
+                    {...register("longitude")}
+                        id="longitude"
+                        name="longitude"
+                       
+                       
                         fullWidth
                     // Options prop might be needed here to list down the incidence levels if Shadcn UI supports it
                     />
@@ -226,83 +264,3 @@ const EditIncidenceForm: React.FC<EditIncidenceFormProps> = ({ open, onClose, in
 };
 
 export default EditIncidenceForm;
-
-
-/* <TextField
-                        label="Autonomous Region"
-                        name="autonomousRegion"
-                        value={formData.autonomousRegion}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                    />
-                    <TextField
-                        label="Car Registration"
-                        name="carRegistration"
-                        value={formData.carRegistration}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                    />
-                    <TextField
-                        label="Cause"
-                        name="cause"
-                        value={formData.cause}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                    />
-                    <TextField
-                        label="City/Town"
-                        name="cityTown"
-                        value={formData.cityTown}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                    />
-                    <TextField
-                        label="Direction"
-                        name="direction"
-                        value={formData.direction}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                    />
-                    <TextField
-                        label="End Date"
-                        name="endDate"
-                        value={formData.endDate}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                        InputLabelProps={{ shrink: true }}
-                    />
-                    <TextField
-                        label="Description"
-                        name="incidenceDescription"
-                        value={formData.incidenceDescription}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                        multiline
-                        rows={4}
-                    />
-                    <TextField
-                        label="Incidence ID"
-                        name="incidenceID"
-                        value={formData.incidenceID}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                        disabled // Assuming this is an ID and should not be editable
-                    />
-                    <TextField
-                        label="Incidence Level"
-                        name="incidenceLevel"
-                        value={formData.incidenceLevel}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                    />
-
-*/

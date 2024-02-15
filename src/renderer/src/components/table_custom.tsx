@@ -16,6 +16,8 @@ const columns: GridColDef[] = [
     { field: 'incidenceDescription', headerName: 'Description', width: 200 },
     { field: 'incidenceId', headerName: 'Incidence ID', width: 120 },
     { field: 'incidenceLevel', headerName: 'Incidence Level', width: 130 },
+    { field: 'longitude', headerName: 'Longitude', width: 120 },
+    { field: 'latitude', headerName: 'Latitude', width: 130 },
 ];
 
 
@@ -33,7 +35,13 @@ export default function Tablilla(props: DataTableProps) {
     const [isEditFormOpen, setIsEditFormOpen] = useState(false);
     const [selectedIncidence, setSelectedIncidence] = useState(null);
 
-  
+    const handleEditClick = () => {
+        const incidenceToEdit = rows.find(row => row.incidenceId === selectionModel[0]);
+        if (incidenceToEdit) {
+            setSelectedIncidence(incidenceToEdit);
+            setIsEditFormOpen(true);
+        }
+    };
 
     const handleCloseEditForm = () => {
         setIsEditFormOpen(false);
@@ -69,9 +77,14 @@ export default function Tablilla(props: DataTableProps) {
             // ... other DataGrid properties if any
             />
             <div style={{padding:'10px' ,gap:'10px', display:'flex'}}>
-           
-          
-            
+            <Button onClick={handleEditClick} >Editar seleccionada</Button>
+
+            <EditFile
+                open={isEditFormOpen}
+                onClose={handleCloseEditForm}
+                incidenceData={selectedIncidence}
+            />
+            <Button onClick={handleDelete} >Eliminar seleccionadas</Button>
             <Button onClick={() => navigate("/dashboard")} >Volver</Button>
             </div>
         </div>
